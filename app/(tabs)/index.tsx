@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import {
   Alert,
   ScrollView,
@@ -73,6 +73,7 @@ export default function TabOneScreen() {
     <View style={styles.loginContainer}>
       <Text style={styles.title}>🔐 Sistema de Inventario</Text>
       <Text style={styles.subtitle}>Iniciar Sesión</Text>
+      <Text style={styles.subtitle}> Francisco Javier Montero Ochoa </Text>
 
       <TextInput
         style={styles.input}
