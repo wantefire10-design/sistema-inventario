@@ -30,3 +30,13 @@ export const productosAPI = {
 };
 
 export default API;
+
+// Interceptor para agregar token temporal
+API.interceptors.request.use((config) => {
+  // Token temporal para testing - en producción usar login real
+  const token = "token_temporal_testing";
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});

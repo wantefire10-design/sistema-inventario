@@ -8,7 +8,6 @@ import {
   TouchableOpacity,
   View
 } from 'react-native';
-import { productosAPI } from '../services/api';
 
 const ProductList = ({ navigation }) => {
   const [productos, setProductos] = useState([]);
@@ -18,25 +17,23 @@ const ProductList = ({ navigation }) => {
     try {
       setLoading(true);
       
-      // RETO #4: CONECTAR CON API REAL
-      console.log('🔗 Conectando con backend para cargar productos...');
-      const response = await productosAPI.getAll();
-      console.log('📦 Productos cargados desde la base de datos:', response.data);
-      setProductos(response.data);
+      // 🚨 DEBUG: FORZAR ERROR TEMPORALMENTE
+      console.log('🔴 DEBUG: Forzando error para ver logs...');
+      throw new Error('TEST ERROR: Esto debería aparecer en la terminal de Expo');
       
-      //  DATOS DE PRUEBA (COMENTADOS)
-      // const productosEjemplo = [
-      //   { id: 1, nombre: 'Laptop HP', precio: 12500, stock: 15, categoria_nombre: 'Electrónicos' },
-      //   { id: 2, nombre: 'Mouse Inalámbrico', precio: 450.50, stock: 25, categoria_nombre: 'Electrónicos' },
-      //   { id: 3, nombre: 'Resma de Papel A4', precio: 280, stock: 8, categoria_nombre: 'Oficina' },
-      // ];
-      // setProductos(productosEjemplo);
       
     } catch (error) {
-      console.error(' Error cargando productos:', error);
-      Alert.alert('Error', 'No se pudieron cargar los productos de la base de datos');
+      // 🚨 DEBUG DETALLADO DEL ERROR
+      console.log('=== 🚨 ERROR DETALLADO 🚨 ===');
+      console.log('Mensaje:', error.message);
+      console.log('Stack:', error.stack);
+      console.log('Tipo:', typeof error);
+      console.log('=== 🚨 FIN ERROR 🚨 ===');
+      
+      Alert.alert('Error de Conexión', `No se pudieron cargar los productos: ${error.message}`);
       
       // MOSTRAR DATOS DE PRUEBA SI FALLA LA CONEXIÓN
+      console.log('🔄 Mostrando datos de prueba...');
       const productosEjemplo = [
         { id: 1, nombre: 'Laptop HP', precio: 12500, stock: 15, categoria_nombre: 'Electrónicos' },
         { id: 2, nombre: 'Mouse Inalámbrico', precio: 450.50, stock: 25, categoria_nombre: 'Electrónicos' },
@@ -61,7 +58,9 @@ const ProductList = ({ navigation }) => {
       <Text style={styles.productoPrecio}>${item.precio}</Text>
       <Text style={styles.productoStock}>Stock: {item.stock} unidades</Text>
       <Text style={styles.productoCategoria}>{item.categoria_nombre}</Text>
-      <Text style={styles.productoReal}>✅ Datos reales de BD</Text>
+      <Text style={styles.productoSource}>
+        {item.id <= 3 ? '🔄 Datos de prueba' : '✅ Datos reales de BD'}
+      </Text>
     </TouchableOpacity>
   );
 
@@ -77,7 +76,9 @@ const ProductList = ({ navigation }) => {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>📦 Gestión de Inventario</Text>
-      <Text style={styles.subtitle}>✅ Conectado a Base de Datos - Reto #4</Text>
+      <Text style={styles.subtitle}>
+        {productos.length > 0 && productos[0].id <= 3 ? '🔄 Usando datos de prueba' : '✅ Conectado a Base de Datos - Reto #4'}
+      </Text>
       
       <FlatList
         data={productos}
@@ -91,6 +92,13 @@ const ProductList = ({ navigation }) => {
         onPress={() => Alert.alert('Agregar', 'Funcionalidad para agregar productos')}
       >
         <Text style={styles.botonTexto}>+ Agregar Producto</Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity 
+        style={styles.botonDebug}
+        onPress={cargarProductos}
+      >
+        <Text style={styles.botonTexto}>🐛 Probar Conexión</Text>
       </TouchableOpacity>
     </View>
   );
@@ -160,9 +168,9 @@ const styles = StyleSheet.create({
     marginTop: 2,
     fontStyle: 'italic',
   },
-  productoReal: {
+  productoSource: {
     fontSize: 10,
-    color: '#4CAF50',
+    color: '#FF9800',
     marginTop: 5,
     fontWeight: 'bold',
   },
@@ -170,12 +178,19 @@ const styles = StyleSheet.create({
     backgroundColor: '#007AFF',
     padding: 15,
     borderRadius: 10,
-    marginTop: 20,
+    marginTop: 10,
+    alignItems: 'center',
+  },
+  botonDebug: {
+    backgroundColor: '#FF5722',
+    padding: 15,
+    borderRadius: 10,
+    marginTop: 10,
     alignItems: 'center',
   },
   botonTexto: {
     color: 'white',
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: 'bold',
   },
 });
