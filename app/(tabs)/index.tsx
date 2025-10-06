@@ -74,7 +74,6 @@ export default function TabOneScreen() {
       <Text style={styles.subtitle}>Jose Manuel</Text>
       <Text style={styles.title}>🔐 Sistema de Inventario</Text>
       <Text style={styles.subtitle}>Iniciar Sesión</Text>
-      <Text style={styles.subtitle}> Francisco Javier Montero Ochoa </Text>
 
       <TextInput
         style={styles.input}
