@@ -1,11 +1,11 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import {
-    Alert,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View
+  Alert,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View
 } from 'react-native';
 
 export default function LoginScreen({ navigation = {} }) {
@@ -13,7 +13,7 @@ export default function LoginScreen({ navigation = {} }) {
   const [password, setPassword] = useState('');
 
   const handleLogin = () => {
-    if (username === 'admin' && password === 'password') {
+    if (username === 'lenin' && password === '123') {
       Alert.alert('✅ Éxito', '¡Bienvenido al Sistema!');
       // Navegación simple y directa
       setTimeout(() => {
@@ -78,7 +78,7 @@ const styles = StyleSheet.create({
   },
   input: {
     borderWidth: 1,
-    borderColor: '#ddd',
+    borderColor: '#ddddddff',
     borderRadius: 10,
     padding: 15,
     marginBottom: 15,
@@ -86,7 +86,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'white',
   },
   button: {
-    backgroundColor: '#007AFF',
+    backgroundColor: 'blue',
     padding: 18,
     borderRadius: 10,
     alignItems: 'center',
