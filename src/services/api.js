@@ -1,42 +1,85 @@
 import axios from 'axios';
 
-// Configurar la base URL de tu API
-const API = axios.create({
-  baseURL: 'http://localhost:3000/api',
+// URL para desarrollo - SOLO conexión real
+const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL || 'http://192.168.100.14:3000/api';
+
+console.log('🌐 Conectando a:', API_BASE_URL);
+
+const api = axios.create({
+  baseURL: API_BASE_URL,
+  timeout: 10000,
 });
 
-// Interceptor para agregar el token a las peticiones
-API.interceptors.request.use((config) => {
-  const token = localStorage.getItem('token'); // En React Native usaremos AsyncStorage después
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
+// CRUD COMPLETO - SOLO datos reales
+export const productService = {
+  // CREATE - Crear producto
+  create: async (productData) => {
+    try {
+      console.log('📝 Creando producto:', productData);
+      const response = await api.post('/productos', productData);
+      return response.data;
+    } catch (error) {
+      console.error('❌ Error creando producto:', error.message);
+      throw new Error('No se pudo crear el producto: ' + error.message);
+    }
+  },
+
+  // READ - Obtener productos
+  getAll: async () => {
+    try {
+      console.log('📦 Obteniendo productos del backend...');
+      const response = await api.get('/productos');
+      console.log(`✅ ${response.data.length} productos cargados`);
+      return response.data;
+    } catch (error) {
+      console.error('❌ Error cargando productos:', error.message);
+      throw new Error('No se pudieron cargar los productos: ' + error.message);
+    }
+  },
+
+  // READ - Obtener producto por ID
+  getById: async (id) => {
+    try {
+      const response = await api.get(`/productos/${id}`);
+      return response.data;
+    } catch (error) {
+      console.error('❌ Error obteniendo producto:', error.message);
+      throw new Error('No se pudo obtener el producto: ' + error.message);
+    }
+  },
+
+  // UPDATE - Actualizar producto
+  update: async (id, productData) => {
+    try {
+      console.log('✏️ Actualizando producto ID:', id);
+      const response = await api.put(`/productos/${id}`, productData);
+      return response.data;
+    } catch (error) {
+      console.error('❌ Error actualizando producto:', error.message);
+      throw new Error('No se pudo actualizar el producto: ' + error.message);
+    }
+  },
+
+  // DELETE - Eliminar producto
+  delete: async (id) => {
+    try {
+      console.log('🗑️ Eliminando producto ID:', id);
+      const response = await api.delete(`/productos/${id}`);
+      return response.data;
+    } catch (error) {
+      console.error('❌ Error eliminando producto:', error.message);
+      throw new Error('No se pudo eliminar el producto: ' + error.message);
+    }
+  },
+
+  // Obtener categorías
+  getCategories: async () => {
+    try {
+      const response = await api.get('/categorias');
+      return response.data;
+    } catch (error) {
+      console.error('❌ Error cargando categorías:', error.message);
+      throw new Error('No se pudieron cargar las categorías: ' + error.message);
+    }
   }
-  return config;
-});
-
-// Servicios de Autenticación
-export const authAPI = {
-  login: (username, password) => API.post('/auth/login', { username, password }),
 };
-
-// Servicios de Productos
-export const productosAPI = {
-  getAll: () => API.get('/productos'),
-  getById: (id) => API.get(`/productos/${id}`),
-  create: (producto) => API.post('/productos', producto),
-  update: (id, producto) => API.put(`/productos/${id}`, producto),
-  delete: (id) => API.delete(`/productos/${id}`),
-  getCategorias: () => API.get('/productos/categorias/list'),
-};
-
-export default API;
-
-// Interceptor para agregar token temporal
-API.interceptors.request.use((config) => {
-  // Token temporal para testing - en producción usar login real
-  const token = "token_temporal_testing";
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-  return config;
-});

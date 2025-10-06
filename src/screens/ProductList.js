@@ -8,44 +8,79 @@ import {
   TouchableOpacity,
   View
 } from 'react-native';
+import { productosAPI } from '../services/api';
 
 const ProductList = ({ navigation }) => {
   const [productos, setProductos] = useState([]);
   const [loading, setLoading] = useState(true);
 
   const cargarProductos = async () => {
+    // 🚨 DEBUG EXTREMO - Verificar que la función se ejecuta
+    console.log('🚨 DEBUG: cargarProductos INICIADA - ' + new Date().toLocaleTimeString());
+    console.log('🚨 DEBUG: productosAPI:', typeof productosAPI);
+    
     try {
       setLoading(true);
+      console.log('🚨 DEBUG: Dentro del try');
       
-      // 🚨 DEBUG: FORZAR ERROR TEMPORALMENTE
-      console.log('🔴 DEBUG: Forzando error para ver logs...');
-      throw new Error('TEST ERROR: Esto debería aparecer en la terminal de Expo');
+      // 🚨 PRIMERO probar si la función existe
+      if (typeof productosAPI?.getAll !== 'function') {
+        throw new Error('productosAPI.getAll no es una función');
+      }
       
+      console.log('🚨 DEBUG: Llamando a productosAPI.getAll()...');
+      
+      // 🚨 CONEXIÓN REAL AL BACKEND
+      const response = await productosAPI.getAll();
+      console.log('🚨 DEBUG: Response recibida:', response?.status);
+      
+      if (response.data && response.data.length > 0) {
+        console.log(`✅ Cargados ${response.data.length} productos reales de la BD`);
+        setProductos(response.data);
+      } else {
+        throw new Error('No se recibieron productos de la base de datos');
+      }
       
     } catch (error) {
-      // 🚨 DEBUG DETALLADO DEL ERROR
-      console.log('=== 🚨 ERROR DETALLADO 🚨 ===');
-      console.log('Mensaje:', error.message);
-      console.log('Stack:', error.stack);
-      console.log('Tipo:', typeof error);
-      console.log('=== 🚨 FIN ERROR 🚨 ===');
+      console.log('🚨 ERROR COMPLETO:', error.message);
       
-      Alert.alert('Error de Conexión', `No se pudieron cargar los productos: ${error.message}`);
+      // 🚨 SOLO EN CASO DE EMERGENCIA - Datos de prueba
+      Alert.alert(
+        'Modo de Prueba', 
+        'Usando datos de prueba. Backend no disponible.\n\n' +
+        'ERROR: ' + error.message,
+        [{ text: 'Entendido' }]
+      );
       
-      // MOSTRAR DATOS DE PRUEBA SI FALLA LA CONEXIÓN
-      console.log('🔄 Mostrando datos de prueba...');
       const productosEjemplo = [
-        { id: 1, nombre: 'Laptop HP', precio: 12500, stock: 15, categoria_nombre: 'Electrónicos' },
-        { id: 2, nombre: 'Mouse Inalámbrico', precio: 450.50, stock: 25, categoria_nombre: 'Electrónicos' },
-        { id: 3, nombre: 'Resma de Papel A4', precio: 280, stock: 8, categoria_nombre: 'Oficina' },
+        { 
+          id: 1, 
+          nombre: 'Laptop HP', 
+          precio_venta: 12500, 
+          stock: 15, 
+          categoria_nombre: 'Electrónicos',
+          descripcion: 'Laptop de alta gama',
+          codigo: 'PROD001'
+        },
+        { 
+          id: 2, 
+          nombre: 'Mouse Inalámbrico', 
+          precio_venta: 450.50, 
+          stock: 25, 
+          categoria_nombre: 'Electrónicos',
+          descripcion: 'Mouse óptico inalámbrico',
+          codigo: 'PROD002'
+        },
       ];
       setProductos(productosEjemplo);
     } finally {
       setLoading(false);
+      console.log('🚨 DEBUG: Finalizando cargarProductos');
     }
   };
 
   useEffect(() => {
+    console.log('🚨 DEBUG: useEffect ejecutado');
     cargarProductos();
   }, []);
 
@@ -55,12 +90,32 @@ const ProductList = ({ navigation }) => {
       onPress={() => Alert.alert('Editar', `Funcionalidad para editar: ${item.nombre}`)}
     >
       <Text style={styles.productoNombre}>{item.nombre}</Text>
-      <Text style={styles.productoPrecio}>${item.precio}</Text>
-      <Text style={styles.productoStock}>Stock: {item.stock} unidades</Text>
-      <Text style={styles.productoCategoria}>{item.categoria_nombre}</Text>
-      <Text style={styles.productoSource}>
-        {item.id <= 3 ? '🔄 Datos de prueba' : '✅ Datos reales de BD'}
+      <Text style={styles.productoDescripcion}>{item.descripcion}</Text>
+      
+      <View style={styles.datosFila}>
+        <Text style={styles.datoLabel}>Precio: </Text>
+        <Text style={styles.productoPrecio}>${item.precio_venta}</Text>
+      </View>
+      
+      <View style={styles.datosFila}>
+        <Text style={styles.datoLabel}>Stock: </Text>
+        <Text style={styles.productoStock}>{item.stock} unidades</Text>
+      </View>
+      
+      <View style={styles.datosFila}>
+        <Text style={styles.datoLabel}>Categoría: </Text>
+        <Text style={styles.productoCategoria}>{item.categoria_nombre}</Text>
+      </View>
+
+      <View style={styles.datosFila}>
+        <Text style={styles.datoLabel}>Stock Mínimo: </Text>
+        <Text style={styles.productoStockMinimo}>{item.stock_minimo} unidades</Text>
+      </View>
+      
+      <Text style={styles.productoReal}>
+        {item.id <= 2 ? '🔄 Datos de PRUEBA' : '✅ Datos REALES de BD'}
       </Text>
+      <Text style={styles.productoCodigo}>Código: {item.codigo}</Text>
     </TouchableOpacity>
   );
 
@@ -75,10 +130,20 @@ const ProductList = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>📦 Gestión de Inventario</Text>
+      {/* 🚨 TÍTULO MUY VISIBLE PARA VERIFICAR CAMBIOS */}
+      <Text style={styles.title}>🚨🚨🚨 NUEVA VERSIÓN DEBUG 🚨🚨🚨</Text>
       <Text style={styles.subtitle}>
-        {productos.length > 0 && productos[0].id <= 3 ? '🔄 Usando datos de prueba' : '✅ Conectado a Base de Datos - Reto #4'}
+        {productos.length > 0 && productos[0].id <= 2 ? 
+          '🔄 Modo Prueba - Backend no disponible' : 
+          '✅ Conectado a Base de Datos - Reto #4'
+        }
       </Text>
+
+      <View style={styles.resumenContainer}>
+        <Text style={styles.resumenText}>
+          {productos.length} productos cargados - {new Date().toLocaleTimeString()}
+        </Text>
+      </View>
       
       <FlatList
         data={productos}
@@ -98,7 +163,7 @@ const ProductList = ({ navigation }) => {
         style={styles.botonDebug}
         onPress={cargarProductos}
       >
-        <Text style={styles.botonTexto}>🐛 Probar Conexión</Text>
+        <Text style={styles.botonTexto}>🔄 Recargar y Debug</Text>
       </TouchableOpacity>
     </View>
   );
@@ -121,17 +186,32 @@ const styles = StyleSheet.create({
     color: '#666',
   },
   title: {
-    fontSize: 28,
+    fontSize: 24,
     fontWeight: 'bold',
     textAlign: 'center',
     marginVertical: 10,
-    color: '#333',
+    color: '#FF0000',
+    backgroundColor: '#FFEB3B',
+    padding: 10,
+    borderRadius: 10,
   },
   subtitle: {
     fontSize: 16,
     textAlign: 'center',
-    marginBottom: 20,
+    marginBottom: 10,
     color: '#007AFF',
+    fontWeight: '600',
+  },
+  resumenContainer: {
+    backgroundColor: '#e8f5e8',
+    padding: 10,
+    borderRadius: 8,
+    marginBottom: 15,
+    alignItems: 'center',
+  },
+  resumenText: {
+    fontSize: 14,
+    color: '#2e7d32',
     fontWeight: '600',
   },
   lista: {
@@ -151,28 +231,55 @@ const styles = StyleSheet.create({
   productoNombre: {
     fontSize: 18,
     fontWeight: 'bold',
+    color: '#333',
+  },
+  productoDescripcion: {
+    fontSize: 14,
+    color: '#555',
+    marginTop: 4,
+    fontStyle: 'italic',
+  },
+  datosFila: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 4,
+  },
+  datoLabel: {
+    fontSize: 14,
+    color: '#666',
+    fontWeight: '600',
+    width: 100,
   },
   productoPrecio: {
     fontSize: 16,
     color: '#007AFF',
-    marginTop: 5,
+    fontWeight: 'bold',
   },
   productoStock: {
     fontSize: 14,
     color: '#666',
-    marginTop: 2,
+    fontWeight: '600',
   },
   productoCategoria: {
-    fontSize: 12,
+    fontSize: 14,
     color: '#888',
-    marginTop: 2,
-    fontStyle: 'italic',
+    fontWeight: '600',
   },
-  productoSource: {
+  productoStockMinimo: {
+    fontSize: 12,
+    color: '#ff9800',
+    fontWeight: '600',
+  },
+  productoReal: {
     fontSize: 10,
-    color: '#FF9800',
-    marginTop: 5,
+    color: '#4CAF50',
+    marginTop: 8,
     fontWeight: 'bold',
+  },
+  productoCodigo: {
+    fontSize: 10,
+    color: '#999',
+    marginTop: 3,
   },
   botonAgregar: {
     backgroundColor: '#007AFF',

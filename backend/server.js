@@ -1,22 +1,32 @@
 const express = require('express');
 const cors = require('cors');
-require('dotenv').config();
+const { 
+  getProducts, 
+  getProductById, 
+  getCategories,
+  createProduct, 
+  updateProduct, 
+  deleteProduct
+  // ⬇️ ELIMINA ESTA LÍNEA ⬇️
+  // getLowStockProducts
+} = require('./productController');
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = 3000;
 
 // Middleware
 app.use(cors());
 app.use(express.json());
 
-// Rutas
-app.use('/api/auth', require('./routes/auth'));
-app.use('/api/productos', require('./routes/productos'));
-
-// Ruta de prueba
-app.get('/', (req, res) => {
-  res.json({ message: 'API del Sistema de Inventario funcionando!' });
-});
+// Rutas de productos
+app.get('/api/productos', getProducts);
+app.get('/api/productos/:id', getProductById);
+app.get('/api/categorias', getCategories);
+// ⬇️ ELIMINA ESTA RUTA ⬇️
+// app.get('/api/productos-bajo-stock', getLowStockProducts);
+app.post('/api/productos', createProduct);
+app.put('/api/productos/:id', updateProduct);
+app.delete('/api/productos/:id', deleteProduct);
 
 app.listen(PORT, () => {
   console.log(`🚀 Servidor corriendo en http://localhost:${PORT}`);

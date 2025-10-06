@@ -13,7 +13,7 @@ export default function LoginScreen({ navigation = {} }) {
   const [password, setPassword] = useState('');
 
   const handleLogin = () => {
-    if (username === 'lenin' && password === '123') {
+    if (username === 'admin' && password === 'password') {
       Alert.alert('✅ Éxito', '¡Bienvenido al Sistema!');
       // Navegación simple y directa
       setTimeout(() => {
