@@ -4,6 +4,10 @@ const { verifyToken, verifyAdmin } = require('../middleware/auth');
 
 const router = express.Router();
 
+// =================================================================
+// RUTAS GET (LECTURA) - Sin cambios
+// =================================================================
+
 // GET - Obtener todos los productos
 router.get('/', verifyToken, async (req, res) => {
   try {
@@ -14,7 +18,6 @@ router.get('/', verifyToken, async (req, res) => {
       WHERE p.activo = TRUE
       ORDER BY p.nombre
     `);
-    
     res.json(productos);
   } catch (error) {
     console.error('Error obteniendo productos:', error);
@@ -43,28 +46,23 @@ router.get('/:id', verifyToken, async (req, res) => {
   }
 });
 
+// =================================================================
+// RUTAS CUD (ESCRITURA) - CORREGIDAS PARA LA BASE DE DATOS REAL
+// =================================================================
+
 // POST - Crear nuevo producto (solo admin)
 router.post('/', verifyToken, verifyAdmin, async (req, res) => {
   try {
-    const { nombre, descripcion, precio, stock, stock_minimo, categoria_id, codigo_barras } = req.body;
+    // CAMBIO: Se ajustan los campos a la base de datos
+    const { codigo, nombre, descripcion, precio_compra, precio_venta, stock, stock_minimo, categoria_id } = req.body;
     
-    const [result] = await connection.promise().query(
-      `INSERT INTO productos 
-       (nombre, descripcion, precio, stock, stock_minimo, categoria_id, codigo_barras) 
-       VALUES (?, ?, ?, ?, ?, ?, ?)`,
-      [nombre, descripcion, precio, stock, stock_minimo, categoria_id, codigo_barras]
+    // Llamada al Stored Procedure con la acción 'CREAR' y los parámetros correctos
+    await connection.promise().query(
+      'CALL sp_GestionarProducto(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+      ['CREAR', null, codigo, nombre, descripcion, precio_compra, precio_venta, stock, stock_minimo, categoria_id]
     );
     
-    // Obtener el producto recién creado
-    const [productos] = await connection.promise().query(
-      'SELECT * FROM productos WHERE id = ?',
-      [result.insertId]
-    );
-    
-    res.status(201).json({
-      message: 'Producto creado exitosamente',
-      producto: productos[0]
-    });
+    res.status(201).json({ message: 'Producto creado exitosamente' });
   } catch (error) {
     console.error('Error creando producto:', error);
     res.status(500).json({ error: 'Error interno del servidor' });
@@ -74,19 +72,15 @@ router.post('/', verifyToken, verifyAdmin, async (req, res) => {
 // PUT - Actualizar producto (solo admin)
 router.put('/:id', verifyToken, verifyAdmin, async (req, res) => {
   try {
-    const { nombre, descripcion, precio, stock, stock_minimo, categoria_id, codigo_barras } = req.body;
-    
-    const [result] = await connection.promise().query(
-      `UPDATE productos 
-       SET nombre = ?, descripcion = ?, precio = ?, stock = ?, stock_minimo = ?, 
-           categoria_id = ?, codigo_barras = ?, fecha_actualizacion = CURRENT_TIMESTAMP 
-       WHERE id = ?`,
-      [nombre, descripcion, precio, stock, stock_minimo, categoria_id, codigo_barras, req.params.id]
+    // CAMBIO: Se ajustan los campos a la base de datos
+    const { codigo, nombre, descripcion, precio_compra, precio_venta, stock, stock_minimo, categoria_id } = req.body;
+    const { id } = req.params;
+
+    // Llamada al Stored Procedure con la acción 'ACTUALIZAR' y los parámetros correctos
+    await connection.promise().query(
+      'CALL sp_GestionarProducto(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+      ['ACTUALIZAR', id, codigo, nombre, descripcion, precio_compra, precio_venta, stock, stock_minimo, categoria_id]
     );
-    
-    if (result.affectedRows === 0) {
-      return res.status(404).json({ error: 'Producto no encontrado' });
-    }
     
     res.json({ message: 'Producto actualizado exitosamente' });
   } catch (error) {
@@ -98,14 +92,13 @@ router.put('/:id', verifyToken, verifyAdmin, async (req, res) => {
 // DELETE - Eliminar producto (solo admin)
 router.delete('/:id', verifyToken, verifyAdmin, async (req, res) => {
   try {
-    const [result] = await connection.promise().query(
-      'UPDATE productos SET activo = FALSE WHERE id = ?',
-      [req.params.id]
+    const { id } = req.params;
+
+    // CAMBIO: Se ajusta el número de parámetros NULL para que coincida con el SP
+    await connection.promise().query(
+      'CALL sp_GestionarProducto(?, ?, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL)',
+      ['ELIMINAR', id]
     );
-    
-    if (result.affectedRows === 0) {
-      return res.status(404).json({ error: 'Producto no encontrado' });
-    }
     
     res.json({ message: 'Producto eliminado exitosamente' });
   } catch (error) {
@@ -114,11 +107,11 @@ router.delete('/:id', verifyToken, verifyAdmin, async (req, res) => {
   }
 });
 
-// GET - Obtener categorías
+// GET - Obtener categorías (Sin cambios)
 router.get('/categorias/list', verifyToken, async (req, res) => {
   try {
     const [categorias] = await connection.promise().query(
-      'SELECT * FROM categorias WHERE activa = TRUE ORDER BY nombre'
+      'SELECT * FROM categorias ORDER BY nombre'
     );
     
     res.json(categorias);
